@@ -1,4 +1,5 @@
-﻿using KGKioskWebAPI.Models;
+﻿using KGKioskWebAPI.Data;
+using KGKioskWebAPI.Models;
 using KGKioskWebAPI.Repository.Interface;
 
 namespace KGKioskWebAPI.Repository.Implementation
@@ -6,25 +7,28 @@ namespace KGKioskWebAPI.Repository.Implementation
     public class RoleRepository : IRoleRepository
     {
         private List<Role> _roles;
+        private readonly KioskDbContext _context;
 
-        public RoleRepository()
+        public RoleRepository(KioskDbContext context)
         {
             _roles = new List<Role>();
+            _context = context;
         }
 
         public List<Role> GetRoles()
         {
-            return _roles;
+            var roles = _context.Roles.ToList();
+            return roles;
         }
 
         public Role GetRoleById(int id)
         {
-            return _roles.FirstOrDefault(r => r.RoleId == id);
+            return _context.Roles.FirstOrDefault(r => r.Id == id);
         }
 
         public bool RoleExists(int id)
         {
-            return _roles.Any(r => r.RoleId == id);
+            return _context.Roles.Any(r => r.Id == id);
         }
     }
 

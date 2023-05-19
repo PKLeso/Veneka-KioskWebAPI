@@ -88,7 +88,7 @@ namespace KGKioskWebAPI.Implementations
             }
 
             List<Role> userRoles = _userRepository.GetUserRoles(userId);
-            if (userRoles.Any(r => r.RoleId == roleId))
+            if (userRoles.Any(r => r.Id == roleId))
             {
                 return true; // Role is already assigned to the user
             }

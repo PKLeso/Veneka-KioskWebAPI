@@ -1,7 +1,9 @@
+using KGKioskWebAPI.Data;
 using KGKioskWebAPI.Implementations;
 using KGKioskWebAPI.Interfaces;
 using KGKioskWebAPI.Repository.Implementation;
 using KGKioskWebAPI.Repository.Interface;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,11 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+
+builder.Services.AddDbContext<KioskDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnectionString"));
+});
 
 // Add services to the container.
 

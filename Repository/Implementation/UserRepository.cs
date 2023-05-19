@@ -1,4 +1,5 @@
-﻿using KGKioskWebAPI.Models;
+﻿using KGKioskWebAPI.Data;
+using KGKioskWebAPI.Models;
 using KGKioskWebAPI.Repository.Interface;
 
 namespace KGKioskWebAPI.Repository.Implementation
@@ -8,37 +9,40 @@ namespace KGKioskWebAPI.Repository.Implementation
         private List<User> _users;
         private List<Role> _roles;
         private List<UserRole> _userRoles;
+        private readonly KioskDbContext _context;
 
-        public UserRepository()
+        public UserRepository(KioskDbContext context)
         {
             _users = new List<User>();
             _roles = new List<Role>();
             _userRoles = new List<UserRole>();
+            _context = context;
         }
 
         public List<User> GetUsers()
         {
-            return _users;
+            var users = _context.Users.ToList();
+            return users;
         }
 
         public User GetUserById(int id)
         {
-            return _users.FirstOrDefault(u => u.Id == id);
+            return _context.Users.FirstOrDefault(u => u.Id == id);
         }
 
         public User CreateUser(User user)
         {
             user.Id = GenerateUserId();
-            _users.Add(user);
+            _context.Users.Add(user);
             return user;
         }
 
         public bool DeleteUser(int id)
         {
-            User user = _users.FirstOrDefault(u => u.Id == id);
+            User user = _context.Users.FirstOrDefault(u => u.Id == id);
             if (user != null)
             {
-                _users.Remove(user);
+                _context.Users.Remove(user);
                 RemoveUserRoles(id);
                 return true;
             }
@@ -47,14 +51,14 @@ namespace KGKioskWebAPI.Repository.Implementation
 
         public bool AssignRoleToUser(int userId, int roleId)
         {
-            User user = _users.FirstOrDefault(u => u.Id == userId);
-            Role role = _roles.FirstOrDefault(r => r.RoleId == roleId);
+            User user = _context.Users.FirstOrDefault(u => u.Id == userId);
+            Role role = _context.Roles.FirstOrDefault(r => r.Id == roleId);
 
             if (user != null && role != null)
             {
                 if (!IsUserRoleExists(userId, roleId))
                 {
-                    _userRoles.Add(new UserRole(userId, roleId));
+                    _context.UserRoles.Add(new UserRole(userId, roleId));
                 }
                 return true;
             }
@@ -63,11 +67,11 @@ namespace KGKioskWebAPI.Repository.Implementation
 
         public bool RemoveRoleFromUser(int userId, int roleId)
         {
-            UserRole userRole = _userRoles.FirstOrDefault(ur => ur.UserId == userId && ur.RoleId == roleId);
+            UserRole userRole = _context.UserRoles.FirstOrDefault(ur => ur.Id == userId && ur.RoleId == roleId);
 
             if (userRole != null)
             {
-                _userRoles.Remove(userRole);
+                _context.UserRoles.Remove(userRole);
                 return true;
             }
             return false;
@@ -75,7 +79,7 @@ namespace KGKioskWebAPI.Repository.Implementation
 
         public bool ActivateUser(int id)
         {
-            User user = _users.FirstOrDefault(u => u.Id == id);
+            User user = _context.Users.FirstOrDefault(u => u.Id == id);
             if (user != null)
             {
                 user.IsActive = true;
@@ -86,7 +90,7 @@ namespace KGKioskWebAPI.Repository.Implementation
 
         public bool DeactivateUser(int id)
         {
-            User user = _users.FirstOrDefault(u => u.Id == id);
+            User user = _context.Users.FirstOrDefault(u => u.Id == id);
             if (user != null)
             {
                 user.IsActive = false;
@@ -97,7 +101,7 @@ namespace KGKioskWebAPI.Repository.Implementation
 
         public bool UpdateUser(int id, User updatedUser)
         {
-            User user = _users.FirstOrDefault(u => u.Id == id);
+            User user = _context.Users.FirstOrDefault(u => u.Id == id);
             if (user != null)
             {
                 user.FirstName = updatedUser.FirstName;
@@ -124,10 +128,10 @@ namespace KGKioskWebAPI.Repository.Implementation
             List<User> users = new List<User>();
             foreach (UserRole userRole in _userRoles.Where(ur => ur.RoleId == roleId))
             {
-                User user = _users.FirstOrDefault(u => u.Id == userRole.UserId);
+                User user = _context.Users.FirstOrDefault(u => u.Id == userRole.Id);
                 if (user != null)
                 {
-                    users.Add(user);
+                    _context.Users.Add(user);
                 }
             }
             return users;
@@ -136,9 +140,9 @@ namespace KGKioskWebAPI.Repository.Implementation
         public List<Role> GetUserRoles(int userId)
         {
             List<Role> roles = new List<Role>();
-            foreach (UserRole userRole in _userRoles.Where(ur => ur.UserId == userId))
+            foreach (UserRole userRole in _context.UserRoles.Where(ur => ur.Id == userId))
             {
-                Role role = _roles.FirstOrDefault(r => r.RoleId == userRole.RoleId);
+                Role role = _context.Roles.FirstOrDefault(r => r.Id == userRole.RoleId);
                 if (role != null)
                 {
                     roles.Add(role);
@@ -155,7 +159,7 @@ namespace KGKioskWebAPI.Repository.Implementation
 
         private void RemoveUserRoles(int userId)
         {
-            List<UserRole> userRolesToRemove = _userRoles.Where(ur => ur.UserId == userId).ToList();
+            List<UserRole> userRolesToRemove = _userRoles.Where(ur => ur.Id == userId).ToList();
             foreach (UserRole userRole in userRolesToRemove)
             {
                 _userRoles.Remove(userRole);
@@ -164,7 +168,7 @@ namespace KGKioskWebAPI.Repository.Implementation
 
         private bool IsUserRoleExists(int userId, int roleId)
         {
-            return _userRoles.Any(ur => ur.UserId == userId && ur.RoleId == roleId);
+            return _userRoles.Any(ur => ur.Id == userId && ur.RoleId == roleId);
         }
 
         public bool UserExists(int id)
@@ -174,7 +178,7 @@ namespace KGKioskWebAPI.Repository.Implementation
 
         public void RemoveRolesFromUser(int userId)
         {
-            List<UserRole> userRolesToRemove = _userRoles.Where(ur => ur.UserId == userId).ToList();
+            List<UserRole> userRolesToRemove = _userRoles.Where(ur => ur.Id == userId).ToList();
             foreach (UserRole userRole in userRolesToRemove)
             {
                 _userRoles.Remove(userRole);
